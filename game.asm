@@ -14,7 +14,7 @@
 .eqv PLATVERT 1
 .eqv PLATUPL 2
 .eqv PLATUPR 3
-.eqv PLATMV 2 #Defines the scalar value for what a single 
+.eqv PLATMV 1 #Defines the scalar value for what a single unit length/offset represents
 
 
 .eqv LENGTH 256
@@ -30,9 +30,9 @@ main:
 	li $s1, 0x32a89d # $t3 stores the blue colour code
 	li $s2, 0xa86232 # $t3 stores the platform colour code
 	
-MAIN:	
-	li $t0, 128
-	li $t1, 128
+	
+	li $t0, 0
+	li $t1, 0
 	li $t2, PLATNOTH
 	li $t3, PLATHOR
 	li $t4, 6
@@ -49,16 +49,19 @@ MAIN:
 	sw $t4, 0($sp)
 	
 	jal mkPlt
+	
 	move $t0, $v0
 	move $a0, $t0
+MAIN:
 	jal drwPlt
-	
+	jal mvPltD
+	move $a0 $v0
 	j MAIN
 	
 drwPlt:	#Draws *entire* platform stored in a0
 	#Retrieves platform data
-	lw $a0, 0($sp)
-	addi $sp, $sp, -4
+	#lw $a0, 0($sp)
+	#addi $sp, $sp, -4
 	
 	#Stores original $ra
 	move $t4, $ra
@@ -101,6 +104,7 @@ drwPlt:	#Draws *entire* platform stored in a0
 drwPltLoop:
 	bgt $t2, $t3, drwPltLoopEnd
 	sw $s2, 0($t2)
+	#addi $a0, $a0, 32768
 	addi $t2, $t2, 4
 	j drwPltLoop
 drwPltLoopEnd:
@@ -132,6 +136,34 @@ mkPlt:	#This function generates a platform at pos (a0, a1), with type a2, dir a3
 	or $t5, $t5, $t4
 	ori $t5, $t5, 1
 	move $v0, $t5
+	jr $ra
+	
+mvPltU:
+	li $t0, -1
+	sll $t0, $t0, 8
+	add $a0, $a0, $t0
+	move $v0, $a0
+	jr $ra
+
+mvPltL:
+	li $t0, -1
+	sll $t0, $t0, 12
+	add $a0, $a0, $t0
+	move $v0, $a0
+	jr $ra
+
+mvPltR:
+	li $t0, 1
+	sll $t0, $t0, 12
+	add $a0, $a0, $t0
+	move $v0, $a0
+	jr $ra
+
+mvPltD:
+	li $t0, 1
+	sll $t0, $t0, 8
+	add $a0, $a0, $t0
+	move $v0, $a0
 	jr $ra
 
 pltLen:	#Return platform length
