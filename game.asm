@@ -47,7 +47,7 @@
 .eqv HEIGHT 256
 .eqv KEYBOARD 0xffff0000
 .eqv TIMING 30
-.eqv PLATFORMBYTE 20
+.eqv PLATFORMBYTE 40
 
 #Definitions for screen pos
 .eqv playerX $s5
@@ -121,6 +121,7 @@ mkPltLoop:
 	jal mkPlt
 	move $t0, $v0
 	
+	#Randomize offsets
 	li $a0, 13
 	jal genRan
 	move $t4, $v0	
@@ -135,6 +136,7 @@ mkPltLoop:
 	sll $t4, $t4, 8
 	add $t0, $t0, $t4
 	
+	#Store in platforms array
 	la $t6, platforms
 	add $t6, $t6, $t7
 	sw $t0, 0($t6)
@@ -147,7 +149,6 @@ mkPltLoop:
 	j mkPltLoop
 mkPltLoopEnd:
 MAIN:	
-	jal updatePlayer
 	li $t8, 0
 	la $t9, platforms
 drwPltLoop:
@@ -160,14 +161,106 @@ drwPltLoop:
 	add $t9, $t9, 4
 	j drwPltLoop
 drwPltLoopEnd:
+	jal updatePlayer
 	li $v0, 32
 	li $a0, TIMING
 	syscall
 	move $a0, $t7
 	j MAIN
 	
+		#CLEARS ALL REGISTERS
+checkBound:	#Checks for platform existence at position (playerX+$a0, playerY+$a1) and returns 0 or 1 ($a0 will hold the platform that was collided with)
+	move $t9 $ra
+	add $t0, $a0, playerX
+	add $t1, $a1, playerY
+	la $t2, platforms
+	add $t3, $t2, PLATFORMBYTE
+	#Loop through every platform
+boundPltLoop:
+	bgt $t2, $t3, boundPltEnd
+	lw $a0, 0($t2)
+	jal pltY
+	move $t4, $v0
+	jal pltFY
+	li $t6, PLATMV
+	mult $v0, $t6
+	mflo $v0
+	add $t4, $t4, $v0
+	sub $t4, $t1, $t4
+	bnez $t4, boundPltXLoopEnd
+	
+	jal pltX
+	move $t4, $v0
+	jal pltFX
+	li $t6, PLATMV
+	mult $v0, $t6
+	mflo $v0
+	add $t4, $t4, $v0
+	jal pltLen
+	li $t7, PLATMV
+	mult $v0, $t7
+	mflo $v0
+	add $v0, $v0, $t4
+	#Loop through every x value of length from platform
+boundPltXLoop:
+	bgt $t4, $v0, boundPltXLoopEnd
+	sub $t6, $t0, $t4
+	beqz $t6, yesColl
+	
+	add $t4, $t4, 1
+	j boundPltXLoop
+boundPltXLoopEnd:
+	addi $t2, $t2, 4
+	j boundPltLoop
+yesColl:	
+	li $v0, 1
+	j boundReturn
+boundPltEnd:
+	li $v0, 0
+boundReturn:
+	jr $t9
+	
 updatePlayer:
 	move $t5, $ra
+	
+	jal clearPlayer
+	
+	li $a0, 1
+	li $a1, 1
+	jal checkBound	
+	
+	beqz $v0, dontTrackPlt
+	jal pltDir
+	move $t2, $v0
+	jal pltMv
+	li $t0, PLATHOR
+	beq $v0, $t0 pltH
+	
+	li $t0, PLATVERT
+	beq $v0, $t0, pltV
+	
+	li $t0, PLATUPL
+	beq $v0, $t0, pltUL
+	
+	li $t0, PLATUPR
+	beq $v0, $t0, pltUR
+pltH:
+	beqz $t2, movePlyrLft
+	add playerX, playerX, PLATMV
+	j dontTrackPlt
+movePlyrLft:
+	sub playerX, playerX, PLATMV
+	j dontTrackPlt
+pltV:
+	beqz $t2, movePlyrDwn
+	sub playerY, playerY, PLATMV
+	j dontTrackPlt
+movePlyrDwn:
+	add playerY, playerY, PLATMV
+	j dontTrackPlt
+pltUR:
+pltUL:
+dontTrackPlt:	
 	li $t1, KEYBOARD
 	lw $t0, 0($t1)
 	beqz $t0, keyCaseEnd
@@ -183,19 +276,15 @@ updatePlayer:
 	beq $t0, 87, keyCaseW
 	j NoMove
 keyCaseA:
-	jal clearPlayer
 	sub playerX, playerX, 1
 	j keyCaseEnd
 keyCaseD:
-	jal clearPlayer
 	add playerX, playerX, 1
 	j keyCaseEnd
 keyCaseW:
-	jal clearPlayer
 	sub playerY, playerY, 1
 	j keyCaseEnd
 keyCaseS:
-	jal clearPlayer
 	add playerY, playerY, 1
 	j keyCaseEnd
 keyCaseSpace:
@@ -220,7 +309,7 @@ clearPlayer:
 	li $a1, 16
 	jal replaceCol
 	
-	add $t3, $t3, $s3
+	sub $t3, $t3, $s3
 	move $a0, $t3
 	li $a1, 16
 	jal replaceCol
@@ -244,7 +333,7 @@ drawPlayer:#Draws player at specified coordinates in x,y
 	move $a2, $s7
 	jal fill
 	
-	add $t2, $t2, $s3
+	sub $t2, $t2, $s3
 	move $a0, $t2
 	li $a1, 16
 	move $a2, $s7
@@ -636,6 +725,11 @@ mvPltU:
 	jal drwPlt
 	move $a0, $v0
 	jr $t5
+
+pltDir:	#Return platform movement type
+	srl $v0, $a0, 7
+	andi $v0, 1 #Mask to remove irrelevant data
+	jr $ra
 
 pltMv:	#Return platform movement type
 	srl $v0, $a0, 5
