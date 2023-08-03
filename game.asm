@@ -179,6 +179,7 @@ drwPltLoopEnd:
 	
 	la $a0, object
 	lw $a0, 0($a0)
+	move $t5, $a0
 	jal updateObj
 	
 	la $t3, powerUpVal
@@ -228,7 +229,7 @@ updateObj:
 	
 	jal pltY
 	move $t1, $v0
-
+	move $t5, $a0,
 	sub $t2, $t1, playerY
 	blt $t2, -2, objNoTouch
 	bgt $t2, 2, objNoTouch
@@ -248,8 +249,8 @@ updateObj:
 	li $a1, 8
 	jal replaceCol
 	
-	andi $t0, $a0, 255	#Get duration
-	andi $t1, $a0, 3840	#Get type
+	andi $t0, $t5, 255	#Get duration
+	andi $t1, $t5, 3840	#Get type
 	bgtz $t1, touchedRed
 	j spawnNewObj
 touchedRed:
@@ -312,7 +313,7 @@ drawObj:	#Draws powerup stored i $a0
 	mflo $t4
 	
 	add $t3, $t3, $t4
-	andi $t4, $a0, 65280	#Mask to extract powerup type
+	andi $t4, $a0, 3840	#Mask to extract powerup type
 	srl $t4, $t4, 8 
 	beqz $t4, colorBlue
 	li $a2, 0x00ff0000	#Color obj red
