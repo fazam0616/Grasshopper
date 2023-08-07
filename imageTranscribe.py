@@ -1,7 +1,7 @@
 from PIL import Image
 from numpy import asarray
 
-img = asarray(Image.open("Background.bmp"))
+img = asarray(Image.open(input("Enter img name:")))
 nums = []
 
 for row in img:
