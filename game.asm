@@ -241,6 +241,7 @@ offDecreasePre:
 offIncreasePre:
 	la $s4, offIncreasePost
 offClrPlt:
+	jal clearPlayer
 	li $t8, 0
 	la $t9, platforms
 offClrPltLoop:
@@ -248,24 +249,47 @@ offClrPltLoop:
 	lw $a0, 0($t9)
 	jal clrPlt
 	
-	#move $a0, $s4
-	#jal drwPlt
 	add $t8, $t8, 4
 	add $t9, $t9, 4
 	j offClrPltLoop
 offClrPltLoopEnd:
+	la $t0, object
+	lw $a0, 0($t0)
+	jal clrObj
+	
 	jr $s4
 offDecreasePost:
 	la $t0, offsetY
 	lw $t1, 0($t0)
 	sub $t1, $t1, $s3
 	sw $t1, 0($t0)
-	j noOffChange
+	
+	j doneClearing
 offIncreasePost:
 	la $t0, offsetY
 	lw $t1, 0($t0)
 	add $t1, $t1, $s3
 	sw $t1, 0($t0)
+	
+doneClearing:
+	la $t0, object
+	lw $a0, 0($t0)
+	jal drawObj
+
+	jal drawPlayer
+
+	li $t8, 0
+	la $t9, platforms
+drwPltUpdtLoop:
+	bgt $t8, PLATFORMBYTE, noOffChange
+	lw $a0, 0($t9)
+	jal updtPlt
+	
+	sw $v0, 0($t9)
+	add $t8, $t8, 4
+	add $t9, $t9, 4
+	j drwPltUpdtLoop
+	
 noOffChange:
 	li $v0, 32
 	li $a0, TIMING
@@ -402,7 +426,38 @@ fillObj:
 	jal fill
 			
 	jr $t7
+
+clrObj:	#Clears powerup stored in $a0
+	move $t7, $ra
+	jal pltX
+	move $t3, $v0
+	li $v0, 4
+	mult $t3, $v0
+	mflo $t3
 	
+	jal pltY
+	move $t4, $v0
+	mult $t4, $s3
+	mflo $t4
+	
+	add $t3, $t3, $t4
+	
+	la $t4, offsetY
+	lw $t4, 0($t4)
+	add $t3, $t3, $t4
+	
+	
+	move $a0, $t3
+	li $a1, 8
+	jal replaceCol
+	
+	add $t3, $t3, $s3
+	move $a0, $t3
+	li $a1, 8
+	jal replaceCol
+			
+	jr $t7
+			
 		#CLEARS ALL REGISTERS
 checkBound:	#Checks for platform existence at position (playerX+$a0, playerY+$a1) and returns 0 or 1 ($a0 will hold the platform that was collided with)
 	move $t9 $ra
