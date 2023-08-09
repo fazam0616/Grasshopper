@@ -27,7 +27,7 @@
 # 7. Start-menu
 #
 # Link to video demonstration for final submission:
-# - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
+# https://www.youtube.com/watch?v=rchcol2azeA&ab_channel=Shazam0616
 #
 # Are you OK with us sharing the video with people outside course staff?
 # - yes
@@ -48,16 +48,17 @@
 .eqv startX 		10
 .eqv startY 		100
 .eqv PLAYERJUMP 	6
-.eqv DEFPLAT 		2
 .eqv POWERJUMP 		9
+.eqv DEFPLAT 		2
 .eqv POWERSCALE 	4
 .eqv MAXHV		3
+.eqv PLAYERJUMPNUM	5	#Default is 1. This is hard!
 
 .eqv LENGTH 		512
 .eqv HEIGHT 		256
 .eqv KEYBOARD 		0xffff0000
 .eqv TIMING 		30
-.eqv PLATFORMBYTE 	36
+.eqv PLATFORMBYTE 	44
 .eqv LAYERSEP		6
 .eqv INITMIN		160
 .eqv INITMAX		60
@@ -495,6 +496,8 @@ passedLayerLoop:
 	mult $t0, $t2
 	mflo $a0
 	
+	subi $a0, $a0, 10
+	
 	jal spwnPlt
 	
 	la $t1 platforms
@@ -704,17 +707,17 @@ objNoTouch:
 	
 spawnObj:	#Creates random powerup at random pos
 	move $t6, $ra
-	li $a0, 100
+	li $a0, 90
 	jal genRan				
 	move $t0, $v0	#X pos
-	add $t0, $t0, 10
+	add $t0, $t0, 15
 	sll $t0,$t0, 24
 	
 	li $a0, 20
 	jal genRan
 	move $t1, $v0	#Y pos
 	add $t1, $t1, playerY
-	addi $t1, $t1, 10
+	subi $t1, $t1, 10
 	sll $t1,$t1, 16
 	
 	li $a0, 50
@@ -1029,7 +1032,7 @@ keyCaseP:
 keyCaseSpace:
 	la $t4, hasJumped
 	lw $t3, 0($t4)
-	bgt $t3, 1, keyCaseEnd
+	bgt $t3, PLAYERJUMPNUM, keyCaseEnd
 	
 	la $t0, playerVY
 	la $t1, playerJump
