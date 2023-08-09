@@ -6,22 +6,25 @@
 # Student: Fahim Zaman, 1008078580, zamanf18, fahim.zaman@mail.utoronto.ca
 #
 # Bitmap Display Configuration:
-# - Unit width in pixels: 2 (update this as needed)
-# - Unit height in pixels: 2 (update this as needed)
+# - Unit width in pixels: 4 (update this as needed)
+# - Unit height in pixels: 4 (update this as needed)
 # - Display width in pixels: 512 (update this as needed)
 # - Display height in pixels: 256 (update this as needed)
-# - Base Address for Display: 0x10000000 (global data)
+# - Base Address for Display: 0x10010000
 #
 # Which milestones have been reached in this submission?
 # (See the assignment handout for descriptions of the milestones)
-# - Milestone 1/2/3 (choose the one the applies)
+# - Milestone 3 
 #
 # Which approved features have been implemented for milestone 3?
 # (See the assignment handout for the list of additional features)
-# 1. (fill in the feature, if any)
-# 2. (fill in the feature, if any)
-# 3. (fill in the feature, if any)
-# ... (add more if necessary)
+# 1. Fail condition
+# 2. Win condition
+# 3. Moving platforms
+# 4. Different levels (random platform generation)
+# 5. Pick-up effects
+# 6. Double jump
+# 7. Start-menu
 #
 # Link to video demonstration for final submission:
 # - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
